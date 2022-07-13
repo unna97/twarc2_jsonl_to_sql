@@ -92,7 +92,23 @@ class TweetObject_to_DataTable:
         self.columns_from_original_processed.extend(columns_needed)
         self.columns_from_original_processed = list(set(self.columns_from_original_processed))
 
+    def attachments_processing(self):
+        columns_needed = ["id", "attachments"]
+        data = self.base_data[columns_needed].dropna()
+        data.rename(columns={"id": "tweet_id"}, inplace=True)
 
+        attachment_types = ['poll_ids', 'media_keys']
+
+        for attachment_type in attachment_types:
+            data[attachment_type] = data.apply(lambda x: x['attachments'].get(attachment_type, np.nan), axis=1)
+            table_name = attachment_type + "_tweet_mapping"
+            self.tables_created[table_name] = data[['tweet_id', attachment_type]].explode(column=attachment_type).dropna()
+            
+            if len(self.tables_created[table_name]) == 0:
+                del self.tables_created[table_name]
+            
+        self.columns_from_original_processed.extend(columns_needed)
+        self.columns_from_original_processed = list(set(self.columns_from_original_processed))
 
 
 
@@ -100,5 +116,5 @@ class TweetObject_to_DataTable:
         self.public_metric_column_processing()
         self.referenced_tweets_processing()
         self.entity_processing()
-
+        self.attachments_processing()
 
