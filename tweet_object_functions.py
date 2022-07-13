@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 class TweetObject_to_DataTable:
@@ -60,7 +61,44 @@ class TweetObject_to_DataTable:
         self.columns_from_original_processed = list(
             set(self.columns_from_original_processed)
         )
+    
+    def entity_processing(self):
+        columns_needed = ["id", "entities"]
+
+
+        data = self.base_data[columns_needed].dropna()
+        data.rename(columns={"id": "tweet_id"}, inplace=True)
+
+        possible_entities = ['hashtags', 'mentions',
+                     'cashtags', 'annonations', 'urls']
+
+        for entity in possible_entities:
+
+            data[entity] = data.apply(lambda x: x['entities'].get(entity, np.nan), axis=1)
+
+            table_name = entity + "_entity_mapping"
+
+            self.tables_created[table_name] = data[['tweet_id', entity]].explode(column=entity).dropna()
+
+            if len(self.tables_created[table_name]) > 0:
+                for key in self.tables_created[table_name][entity].iloc[0].keys():
+                    self.tables_created[table_name][key] = self.tables_created[table_name][entity].apply(
+                        lambda x: x[key])
+                self.tables_created[table_name].drop(columns=[entity], inplace=True)
+
+            else:
+                del self.tables_created[table_name]
+        
+        self.columns_from_original_processed.extend(columns_needed)
+        self.columns_from_original_processed = list(set(self.columns_from_original_processed))
+
+
+
+
 
     def processing_overall(self):
         self.public_metric_column_processing()
         self.referenced_tweets_processing()
+        self.entity_processing()
+
+
