@@ -20,6 +20,7 @@ class TweetObject_to_DataTable:
         self.tables_created = {}
 
     def public_metric_column_processing(self):
+        print("Processing public metrics")
         new_cols = self.base_data["public_metrics"].iloc[0].keys()
         for key in new_cols:
             self.base_data[key] = self.base_data["public_metrics"].apply(
@@ -33,9 +34,10 @@ class TweetObject_to_DataTable:
         """
         This functions creates retweet_tweet_mapping, quote_tweet_mapping, reply_tweet_mapping
         """
+        print("Processing referenced tweets")
         columns_needed = ["id", "in_reply_to_user_id", "referenced_tweets"]
 
-        data = self.base_data[columns_needed].explode("referenced_tweets").dropna()
+        data = self.base_data[columns_needed].explode("referenced_tweets").dropna(subset='referenced_tweets')
         data.rename(columns={"id": "tweet_id"}, inplace=True)
 
         data["referenced_tweet_id"] = data["referenced_tweets"].apply(lambda x: x["id"])
@@ -51,6 +53,8 @@ class TweetObject_to_DataTable:
                 "in_reply_to_user_id",
             ],
         }
+        print(data.tweet_type.value_counts())
+
 
         for key in columns_for_each:
             self.tables_created[key + "_tweet_mapping"] = data[
@@ -63,6 +67,7 @@ class TweetObject_to_DataTable:
         )
 
     def entity_processing(self):
+        print("Processing entities")
         columns_needed = ["id", "entities"]
 
         data = self.base_data[columns_needed].dropna()
@@ -98,6 +103,7 @@ class TweetObject_to_DataTable:
         )
 
     def attachments_processing(self):
+        print("Processing attachments")
         columns_needed = ["id", "attachments"]
         data = self.base_data[columns_needed].dropna()
         data.rename(columns={"id": "tweet_id"}, inplace=True)
