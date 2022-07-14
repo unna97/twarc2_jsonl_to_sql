@@ -37,7 +37,11 @@ class TweetObject_to_DataTable:
         print("Processing referenced tweets")
         columns_needed = ["id", "in_reply_to_user_id", "referenced_tweets"]
 
-        data = self.base_data[columns_needed].explode("referenced_tweets").dropna(subset='referenced_tweets')
+        data = (
+            self.base_data[columns_needed]
+            .explode("referenced_tweets")
+            .dropna(subset="referenced_tweets")
+        )
         data.rename(columns={"id": "tweet_id"}, inplace=True)
 
         data["referenced_tweet_id"] = data["referenced_tweets"].apply(lambda x: x["id"])
@@ -54,7 +58,6 @@ class TweetObject_to_DataTable:
             ],
         }
         print(data.tweet_type.value_counts())
-
 
         for key in columns_for_each:
             self.tables_created[key + "_tweet_mapping"] = data[
