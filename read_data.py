@@ -39,7 +39,7 @@ database_config = {
 }
 conn_str = "postgresql+psycopg2://postgres:unnati@localhost/misogynistic_tweets"
 
-engine = sa.create_engine(conn_str)
+engine = sa.create_engine(conn_str, pool_pre_ping=True)
 
 
 def insert_dataframe_into_table(df: pd.DataFrame, table_name: str) -> int:
@@ -61,7 +61,10 @@ def insert_dataframe_into_table(df: pd.DataFrame, table_name: str) -> int:
     The number of rows inserted into the database.
 
     """
-    n = df.to_sql(name=table_name, con=engine, if_exists="append", index=False)
+    if len(df) == 0:
+        print("no data to insert:", table_name)
+        return 0
+    n = df.to_sql(name=table_name, con=engine, if_exists="append", index=False, method='multi')
     return n
 
 
@@ -76,13 +79,17 @@ def delete_specified_table(table_name: str) -> None:
     The name of the table to delete.
 
     """
-    input("are you sure you want to delete table: " + table_name)
-    if input("are you sure you want to delete table: " + table_name) == "yes":
-        engine.execute("DROP TABLE " + table_name)
-    else:
-        print("table not deleted")
-
+    #if input("are you sure you want to delete table: " + table_name) == "yes":
+    engine.execute("DROP TABLE " + table_name)
+    print("table deleted:", table_name)
     return
+
+
+def get_tables_in_database():
+    """
+    Returns a list of tables in the database.
+    """
+    return engine.table_names()
 
 
 def read_jsonl_file_and_process_save_it(type_command: int, file_name: str) -> None:

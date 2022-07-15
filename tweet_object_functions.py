@@ -16,7 +16,7 @@ class TweetObject_to_DataTable:
             "id",
             "lang",
         ]
-        self.columns_from_original_processed = self.columns_in_tweet_table
+        self.columns_from_original_processed = self.columns_in_tweet_table.copy()
         self.tables_created = {}
 
     def public_metric_column_processing(self):
@@ -57,7 +57,6 @@ class TweetObject_to_DataTable:
                 "in_reply_to_user_id",
             ],
         }
-        print(data.tweet_type.value_counts())
 
         for key in columns_for_each:
             self.tables_created[key + "_tweet_mapping"] = data[
@@ -81,8 +80,7 @@ class TweetObject_to_DataTable:
         for entity in possible_entities:
 
             data[entity] = data.apply(
-                lambda x: x["entities"].get(entity, np.nan), axis=1
-            )
+                lambda x: x["entities"].get(entity, np.nan), axis=1) # trial
 
             table_name = entity + "_entity_mapping"
 
@@ -94,7 +92,7 @@ class TweetObject_to_DataTable:
                 for key in self.tables_created[table_name][entity].iloc[0].keys():
                     self.tables_created[table_name][key] = self.tables_created[
                         table_name
-                    ][entity].apply(lambda x: x[key])
+                    ][entity].apply(lambda x: x.get(key, np.nan))
                 self.tables_created[table_name].drop(columns=[entity], inplace=True)
 
             else:
@@ -135,5 +133,9 @@ class TweetObject_to_DataTable:
     def processing_overall(self):
         self.public_metric_column_processing()
         self.referenced_tweets_processing()
-        self.entity_processing()
+        #self.entity_processing()
         self.attachments_processing()
+
+class UserObject_to_DataTable:
+    def __init__(self, user_df) -> None:
+        pass
