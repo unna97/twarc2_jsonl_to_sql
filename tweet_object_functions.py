@@ -1,7 +1,12 @@
+from datetime import datetime
 import pandas as pd
 import numpy as np
 
+"""
+References:
+    https://developer.twitter.com/en/docs/twitter-api/data-dictionary/
 
+"""
 class TweetObject_to_DataTable:
     def __init__(self, tweets_df: pd.DataFrame):
         self.base_data = tweets_df
@@ -80,7 +85,8 @@ class TweetObject_to_DataTable:
         for entity in possible_entities:
 
             data[entity] = data.apply(
-                lambda x: x["entities"].get(entity, np.nan), axis=1) # trial
+                lambda x: x["entities"].get(entity, np.nan), axis=1
+            )  # trial
 
             table_name = entity + "_entity_mapping"
 
@@ -133,9 +139,61 @@ class TweetObject_to_DataTable:
     def processing_overall(self):
         self.public_metric_column_processing()
         self.referenced_tweets_processing()
-        #self.entity_processing()
+        # self.entity_processing()
         self.attachments_processing()
+
 
 class UserObject_to_DataTable:
     def __init__(self, user_df) -> None:
-        pass
+        self.base_data = user_df
+        self.columns_in_user_table = [
+            "id",
+            "name",
+            "username",
+            "created_at",
+            "description",
+            "location",
+            "pinned_tweet_id",
+            "profile_image_url",
+            "protected",
+            "url",
+            "verified",
+        ]
+        self.columns_from_original_processed = self.columns_in_user_table.copy()
+        self.tables_created = {}
+
+    def public_metric_column_processing(self):
+
+        print("Processing public metrics")
+        new_cols = self.base_data["public_metrics"].iloc[0].keys()
+        for key in new_cols:
+            self.base_data[key] = self.base_data["public_metrics"].apply(
+                lambda x: x[key]
+            )
+        self.base_data.drop(columns=["public_metrics"], inplace=True)
+        self.columns_in_user_table.extend(new_cols)
+        self.columns_from_original_processed.append("public_metrics")
+
+    def set_datatypes(self):
+        self.datatype = {
+            "id": str,
+            "name": str,
+            "username": str,
+            "created_at": datetime,
+            "description": str,
+            "location": str,
+            "pinned_tweet_id": str, ## Foriegn key
+            "profile_image_url": str,
+            "protected": bool,
+            "url": str,
+            "verified": bool,
+        }
+        for key in self.base_data.columns:
+            self.base_data[key] = self.base_data[key].astype(
+                self.columns_in_user_table[key]
+            )
+
+
+
+
+
