@@ -11,7 +11,7 @@ class Author(Base):
     created_at = Column(DateTime)
     description = Column(String)
     location = Column(String)
-    pinned_tweet_id = Column(String) # one to one -> for one author one tweet
+    pinned_tweet_id = Column(String, ForeignKey("tweet_data.id")) # one to one -> for one author one pinned tweet
     profile_image_url = Column(String)
     protected = Column(Boolean)
     url = Column(String)
@@ -39,23 +39,23 @@ class Tweet(Base):
 class ReTweet(Base):
     ### Association Table type: 1:1
     __table__ = "retweet_data"
-    tweet_id = Column(String, ForeignKey("tweet_data.id"), primary_key=True) # one tweet to one retweet references
-    referenced_tweet_id = Column(String, ForeignKey("tweet_data.id"), primary_key=True)  # Many to one relationship
+    tweet_id = Column(String, ForeignKey("tweet_data.id"), primary_key=True) # primary key
+    referenced_tweet_id = Column(String, ForeignKey("tweet_data.id"))  
 
 class Quote(Base):
     __table__ = "quote_data"
-    tweet_id = Column(String, ForeignKey("tweet_data.id"), primary_key=True)
-    referenced_tweet_id = Column(String, ForeignKey("tweet_data.id"), primary_key=True)
+    tweet_id = Column(String, ForeignKey("tweet_data.id"), primary_key=True) # primary key
+    referenced_tweet_id = Column(String, ForeignKey("tweet_data.id"))
 
 class Reply(Base):
-    __table__ = "reply_data"
-    tweet_id = Column(String ,ForeignKey("tweet_data.id"),primary_key=True) ## One to one relationship it's also primary key
-    referenced_tweet_id = Column(String, ForeignKey("tweet_data.id")) ## Many to one relationship
-    in_reply_to_user_id = Column(String, ForeignKey("author_data.id")) ## Many to one relationship
+    __table__ = "reply_data" 
+    tweet_id = Column(String ,ForeignKey("tweet_data.id"),primary_key=True) ## primary key
+    referenced_tweet_id = Column(String, ForeignKey("tweet_data.id")) 
+    in_reply_to_user_id = Column(String, ForeignKey("author_data.id")) 
 
 
 class HashTags(Base):
-    __table__ = "hashtags_data"
+    __table__ = "hashtags_data"  # Tweet_id + Hashtag + star
     id = Column(String, primary_key=True) 
     tweet_id = Column(String, ForeignKey("tweet_data.id"))
     hashtag = Column(String)
@@ -64,7 +64,7 @@ class HashTags(Base):
 
 class Cashtags(Base):
     __table__ = "cashtags_data"
-    id = Column(String, primary_key=True) 
+    id = Column(String, primary_key=True)  # Tweet_id + Cashtag + start
     tweet_id = Column(String, ForeignKey("tweet_data.id"))
     cashtag = Column(String)
     start = Column(Integer)
@@ -72,7 +72,7 @@ class Cashtags(Base):
 
 class Mentions(Base):
     __table__ = "mentions_data"
-    id = Column(String, primary_key=True) 
+    id = Column(String, primary_key=True) ## Combinations author_id-mentioned + tweet_id +start
     tweet_id = Column(String, ForeignKey("tweet_data.id")) # Many mentions in one tweet
     author_id = Column(String, ForeignKey("author_data.id")) ## Many mentions to one author
     start = Column(Integer)
@@ -80,7 +80,7 @@ class Mentions(Base):
 
 class Urls(Base):
     __table__ = "urls_data"
-    id = Column(String, primary_key=True) 
+    id = Column(String, primary_key=True)  #Combination of tweet_id + url + start
     tweet_id = Column(String, ForeignKey("tweet_data.id")) # Many urls in one tweet
     url = Column(String)
     start = Column(Integer)
@@ -99,5 +99,5 @@ class Annonations(Base):
     type= Column(String)
     normalized_text = Column(String)
     tweet_id = Column(String, ForeignKey("tweet_data.id"))
-    id = Column(String, primary_key=True) ### tweet_id + normalized_text
+    id = Column(String, primary_key=True) ### tweet_id + normalized_text + start
 
