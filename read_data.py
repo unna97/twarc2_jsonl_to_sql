@@ -64,7 +64,9 @@ def insert_dataframe_into_table(df: pd.DataFrame, table_name: str) -> int:
     if len(df) == 0:
         print("no data to insert:", table_name)
         return 0
-    n = df.to_sql(name=table_name, con=engine, if_exists="append", index=False, method='multi')
+    n = df.to_sql(
+        name=table_name, con=engine, if_exists="append", index=False, method="multi"
+    )
     return n
 
 
@@ -79,7 +81,7 @@ def delete_specified_table(table_name: str) -> None:
     The name of the table to delete.
 
     """
-    #if input("are you sure you want to delete table: " + table_name) == "yes":
+    # if input("are you sure you want to delete table: " + table_name) == "yes":
     engine.execute("DROP TABLE " + table_name)
     print("table deleted:", table_name)
     return

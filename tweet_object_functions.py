@@ -7,6 +7,8 @@ References:
     https://developer.twitter.com/en/docs/twitter-api/data-dictionary/
 
 """
+
+
 class TweetObject_to_DataTable:
     def __init__(self, tweets_df: pd.DataFrame):
         self.base_data = tweets_df
@@ -183,7 +185,7 @@ class UserObject_to_DataTable:
             "created_at": datetime,
             "description": str,
             "location": str,
-            "pinned_tweet_id": str, ## Foriegn key
+            "pinned_tweet_id": str,  ## Foriegn key
             "profile_image_url": str,
             "protected": bool,
             "url": str,
@@ -193,6 +195,7 @@ class UserObject_to_DataTable:
             self.base_data[key] = self.base_data[key].astype(
                 self.columns_in_user_table[key]
             )
+
     def entity_processing(self):
         print("Processing entities")
         columns_needed = ["id", "entities"]
