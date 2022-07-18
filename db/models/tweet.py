@@ -8,7 +8,7 @@ class Author(Model):
     name = TextField()
     username = TextField()
     location = TextField()
-    pinned_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)
+    pinned_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL, related_name="pinned_tweets")
     # tweet can be pinned by multiple authors
     # but an author can pin one tweet
     profile_image_url = TextField()
@@ -18,8 +18,6 @@ class Author(Model):
 
     class Meta:
         db_table = "author_data"
-
-#     signals,
 
 
 class Tweet(Model):
@@ -49,25 +47,25 @@ class ReTweet(Model):
     class Meta:
         db_table = "retweet_data"
 
-    tweet = ForeignKey('Tweet', primary_key=True, on_delete=SET_NULL)  # primary key
-    referenced_tweet_id = ForeignKey('Tweet', on_delete=SET_NULL)
+    tweet = OneToOneField('Tweet', primary_key=True, on_delete=CASCADE, related_name="re_tweet")  # primary key
+    referenced_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL, related_name="referenced_retweets")
 
 
 class Quote(Model):
     class Meta:
         db_table = "quote_data"
 
-    tweet = ForeignKey('Tweet', primary_key=True, on_delete=SET_NULL)  # primary key
-    referenced_tweet_id = ForeignKey('Tweet', on_delete=SET_NULL)
+    tweet = OneToOneField('Tweet', primary_key=True, on_delete=CASCADE, related_name="tweet_quotes")  # primary key
+    referenced_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)
 
 
 class Reply(Model):
     class Meta:
         db_table = "reply_data"
 
-    tweet = ForeignKey('Tweet', primary_key=True, on_delete=SET_NULL)  # primary key
-    referenced_tweet_id = ForeignKey('Tweet', on_delete=SET_NULL)
-    in_reply_to_user_id = ForeignKey('Author', on_delete=SET_NULL)
+    tweet = OneToOneField('Tweet', primary_key=True, on_delete=CASCADE, related_name="tweet_replies")  # primary key
+    referenced_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)
+    in_reply_to_user = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)
 
 
 # ----------------------------------------------------------------------------------------------------------------------#
@@ -84,8 +82,8 @@ class HashtagTweetMap(Model):
         db_table = "hashtag_tweet_map"
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
-    tweet = ForeignKey('Tweet', primary_key=True, on_delete=SET_NULL)  # primary key
-    hashtag_id = TextField()
+    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # primary key
+    hashtag = ForeignKey('HashTags', null=True, default=None, on_delete=SET_NULL)
     start = IntegerField()
     end = IntegerField()
 
@@ -95,8 +93,8 @@ class HashtagAuthorMap(Model):
         db_table = "hashtag_author_map"
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
-    author = ForeignKey('Author', primary_key=True, on_delete=SET_NULL)  # primary key
-    hashtag_id = TextField()
+    author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
+    hashtag = ForeignKey('HashTags', null=True, default=None, on_delete=SET_NULL)
     start = IntegerField()
     end = IntegerField()
 
@@ -106,38 +104,38 @@ class CashTags(Model):
         db_table = "cashtags_data"  # Tweet_id  + start
 
     id = CharField(max_length=256, primary_key=True)
-    cashtag = TextField()
+    cashtag = ForeignKey('Cashtags', null=True, default=None, on_delete=SET_NULL)
 
 
 class CashtagTweetMap(Model):
     class Meta:
-        db_table = "hashtag_tweet_map"
+        db_table = "cashtag_tweet_map"
 
     id = CharField(max_length=256, primary_key=True)
-    tweet = ForeignKey('Tweet', primary_key=True, on_delete=SET_NULL)  # primary key
-    cashtag = ForeignKey('Cashtags', on_delete=SET_NULL)
+    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # primary key
+    cashtag = ForeignKey('Cashtags', null=True, default=None, on_delete=SET_NULL)
     start = IntegerField()
     end = IntegerField()
 
 
 class CashtagAuthorMap(Model):
     class Meta:
-        db_table = "hashtag_author_map"
+        db_table = "cashtag_author_map"
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
-    author = ForeignKey('Author', primary_key=True, on_delete=SET_NULL)  # primary key
-    hashtag_id = TextField()
+    author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
+    hashtag = ForeignKey('HashTags', null=True, default=None, on_delete=SET_NULL)
     start = IntegerField()
     end = IntegerField()
 
 
-class Mentions(Model):
+class MentionTweet(Model):
     class Meta:
-        db_table = "mentions_data"
+        db_table = "mentions_tweet_map"
 
     id = CharField(max_length=256, primary_key=True)  ## Combinations author_id + tweet_id +start
-    tweet = ForeignKey('Tweet', primary_key=True, on_delete=SET_NULL)  # primary key
-    author = ForeignKey('Author', primary_key=True, on_delete=SET_NULL)  # primary key
+    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # primary key
+    mention_author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
     start = IntegerField()
     end = IntegerField()
 
@@ -147,7 +145,7 @@ class Urls(Model):
         db_table = "urls_data"
 
     id = CharField(max_length=256, primary_key=True)  # Combination of tweet_id + url + start
-    tweet = ForeignKey('Tweet', on_delete=SET_NULL)  # Many urls in one tweet
+    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # Many urls in one tweet
     url = TextField()
     start = IntegerField()
     end = IntegerField()
@@ -166,4 +164,4 @@ class Annonations(Model):
     probability = FloatField()
     type = TextField()  ## Person + Politician
     normalized_text = TextField()
-    tweet = ForeignKey('Tweet', on_delete=SET_NULL)
+    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)
