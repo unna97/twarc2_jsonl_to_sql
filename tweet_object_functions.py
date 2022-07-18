@@ -139,8 +139,9 @@ class TweetObject_to_DataTable:
     def processing_overall(self):
         self.public_metric_column_processing()
         self.referenced_tweets_processing()
-        # self.entity_processing()
+        self.entity_processing()
         self.attachments_processing()
+        self.tables_created["tweet_table"] = self.base_data[self.columns_in_tweet_table]
 
 
 class UserObject_to_DataTable:
@@ -192,8 +193,43 @@ class UserObject_to_DataTable:
             self.base_data[key] = self.base_data[key].astype(
                 self.columns_in_user_table[key]
             )
+    def entity_processing(self):
+        print("Processing entities")
+        columns_needed = ["id", "entities"]
 
+        data = self.base_data[columns_needed].dropna()
+        data.rename(columns={"id": "tweet_id"}, inplace=True)
 
+        possible_entities = ["hashtags", "mentions", "cashtags", "annonations", "urls"]
 
+        for entity in possible_entities:
 
+            data[entity] = data.apply(
+                lambda x: x["entities"].get(entity, np.nan), axis=1
+            )  # trial
 
+            table_name = entity + "_user_mapping"
+
+            self.tables_created[table_name] = (
+                data[["tweet_id", entity]].explode(column=entity).dropna()
+            )
+
+            if len(self.tables_created[table_name]) > 0:
+                for key in self.tables_created[table_name][entity].iloc[0].keys():
+                    self.tables_created[table_name][key] = self.tables_created[
+                        table_name
+                    ][entity].apply(lambda x: x.get(key, np.nan))
+                self.tables_created[table_name].drop(columns=[entity], inplace=True)
+
+            else:
+                del self.tables_created[table_name]
+
+        self.columns_from_original_processed.extend(columns_needed)
+        self.columns_from_original_processed = list(
+            set(self.columns_from_original_processed)
+        )
+
+    def processing_overall(self):
+        self.public_metric_column_processing()
+        self.entity_processing()
+        self.tables_created["user_table"] = self.base_data[self.columns_in_user_table]
