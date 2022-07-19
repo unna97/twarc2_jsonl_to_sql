@@ -35,7 +35,7 @@ database_config = {
     "password": "unnati",
     "host": "localhost",
     "port": "5432",
-    "database": "misogynistic_tweets",  ## database you want to store data in
+    "database": "trial_database"#"misogynistic_tweets",  ## database you want to store data in
 }
 conn_str = "postgresql+psycopg2://postgres:unnati@localhost/misogynistic_tweets"
 
@@ -64,6 +64,7 @@ def insert_dataframe_into_table(df: pd.DataFrame, table_name: str) -> int:
     if len(df) == 0:
         print("no data to insert:", table_name)
         return 0
+    df.drop_duplicates(inplace=True)
     n = df.to_sql(
         name=table_name, con=engine, if_exists="append", index=False, method="multi"
     )
