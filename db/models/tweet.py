@@ -1,3 +1,4 @@
+from enum import unique
 from django.db.models import *
 
 
@@ -71,15 +72,16 @@ class Reply(Model):
 # ----------------------------------------------------------------------------------------------------------------------#
 class HashTags(Model):
     class Meta:
-        db_table = "hashtags_data"  # Tweet_id  + start
+        db_table = "hashtags_data" 
 
-    id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
+    id = CharField(max_length=256, primary_key=True)  # primary key
     hashtag = TextField()
 
 
 class HashtagTweetMap(Model):
     class Meta:
         db_table = "hashtag_tweet_map"
+        unique_together = (('start', 'tweet'),)
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
     tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # primary key
@@ -87,17 +89,18 @@ class HashtagTweetMap(Model):
     start = IntegerField()
     end = IntegerField()
 
-
+### ----------------------------------------------------------------------------------------------------------------------#
 class HashtagAuthorMap(Model):
     class Meta:
         db_table = "hashtag_author_map"
+        unique_together = (('start', 'author'),)
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
-    author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
+    author = ForeignKey('Author', on_delete=CASCADE)  # primary key
     hashtag = ForeignKey('HashTags', null=True, default=None, on_delete=SET_NULL)
     start = IntegerField()
     end = IntegerField()
-
+### ----------------------------------------------------------------------------------------------------------------------#
 
 class CashTags(Model):
     class Meta:
@@ -110,6 +113,7 @@ class CashTags(Model):
 class CashtagTweetMap(Model):
     class Meta:
         db_table = "cashtag_tweet_map"
+        unique_together = (('start', 'tweet'),)
 
     id = CharField(max_length=256, primary_key=True)
     tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # primary key
@@ -121,6 +125,7 @@ class CashtagTweetMap(Model):
 class CashtagAuthorMap(Model):
     class Meta:
         db_table = "cashtag_author_map"
+        unique_together = (('start', 'author'),)
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
     author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
@@ -132,9 +137,10 @@ class CashtagAuthorMap(Model):
 class MentionTweet(Model):
     class Meta:
         db_table = "mentions_tweet_map"
+        unique_together = (('start', 'tweet'),)
 
     id = CharField(max_length=256, primary_key=True)  ## Combinations author_id + tweet_id +start
-    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # primary key
+    tweet = ForeignKey('Tweet', on_delete=CASCADE)  # primary key
     mention_author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
     start = IntegerField()
     end = IntegerField()
@@ -143,9 +149,10 @@ class MentionTweet(Model):
 class Urls(Model):
     class Meta:
         db_table = "urls_data"
+        unique_together = (('start', 'tweet'),)
 
     id = CharField(max_length=256, primary_key=True)  # Combination of tweet_id + url + start
-    tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)  # Many urls in one tweet
+    tweet = ForeignKey('Tweet', on_delete=CASCADE)  # Many urls in one tweet
     url = TextField()
     start = IntegerField()
     end = IntegerField()

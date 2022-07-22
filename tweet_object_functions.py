@@ -8,6 +8,7 @@ References:
 
 """
 
+  
 
 class TweetObject_to_DataTable:
     def __init__(self, tweets_df: pd.DataFrame):
@@ -112,7 +113,9 @@ class TweetObject_to_DataTable:
         )
 
     def attachments_processing(self):
+
         print("Processing attachments")
+        
         columns_needed = ["id", "attachments"]
         data = self.base_data[columns_needed].dropna()
         data.rename(columns={"id": "tweet_id"}, inplace=True)

@@ -139,3 +139,15 @@ class Annonations(Base):
     normalized_text = Column(String)
     tweet_id = Column(String, ForeignKey("tweet_data.id"))
     id = Column(String, primary_key=True)
+
+
+class PollsTweetMap(Base):
+    __table__ = "poll_ids_tweet_mapping"
+    id = Column(String, primary_key=True)  # Tweet_id + start
+    tweet_id = Column(String, ForeignKey("tweet_data.id"))
+
+class MediaKeyTweetMap(Base):
+    __table__ = "media_keys_tweet_mapping"
+    id = Column(String, primary_key=True)  # Tweet_id + start
+    tweet_id = Column(String, ForeignKey("tweet_data.id"))
+    media_key = Column(String)
