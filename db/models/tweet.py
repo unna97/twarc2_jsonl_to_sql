@@ -3,22 +3,32 @@ from django.db.models import *
 
 
 class Author(Model):
-    id = CharField(max_length=256, primary_key=True)
-    # vector search
-    # full text search, indexing ->> django
-    name = TextField()
-    username = TextField()
-    location = TextField()
-    pinned_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL, related_name="pinned_tweets")
-    # tweet can be pinned by multiple authors
-    # but an author can pin one tweet
-    profile_image_url = TextField()
-    protected = BooleanField()
-    url = TextField()
-    verified = BooleanField()
 
     class Meta:
         db_table = "author_data"
+    
+    id = CharField(max_length=256, primary_key=True)
+    name = TextField()
+    username = TextField()
+    created_at = DateTimeField()
+    description = TextField() ## Allow NULL
+    location = TextField() ## Allow NULL
+    #entities --> need to be handled
+    pinned_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL, related_name="pinned_tweets") ## Allow NULL
+    profile_image_url = TextField() ## Allow NULL
+    protected = BooleanField()
+    
+    #public metrics for user
+    followers_count = IntegerField()
+    following_count = IntegerField()
+    tweets_count = IntegerField()
+    listed_count = IntegerField()
+
+    url = TextField() ## Allow NULL
+    verified = BooleanField()
+    #withheld --> need to handle this
+
+    
 
 
 class Tweet(Model):
@@ -33,7 +43,7 @@ class Tweet(Model):
     possibly_sensitive = BooleanField()
     conversation_id = TextField()
     source = TextField()
-    reply_settings = (TextField(),)
+    reply_settings = TextField()
     lang = TextField()
     retweet_count = IntegerField()
     like_count = IntegerField()
@@ -46,7 +56,7 @@ class Tweet(Model):
 class ReTweet(Model):
     ### Association Table type: 1:1
     class Meta:
-        db_table = "retweet_data"
+        db_table = "retweeted_tweet_mapping"
 
     tweet = OneToOneField('Tweet', primary_key=True, on_delete=CASCADE, related_name="re_tweet")  # primary key
     referenced_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL, related_name="referenced_retweets")
@@ -54,7 +64,7 @@ class ReTweet(Model):
 
 class Quote(Model):
     class Meta:
-        db_table = "quote_data"
+        db_table = "quoted_tweet_mapping"
 
     tweet = OneToOneField('Tweet', primary_key=True, on_delete=CASCADE, related_name="tweet_quotes")  # primary key
     referenced_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)
@@ -62,7 +72,7 @@ class Quote(Model):
 
 class Reply(Model):
     class Meta:
-        db_table = "reply_data"
+        db_table = "replied_to_tweet_mapping"
 
     tweet = OneToOneField('Tweet', primary_key=True, on_delete=CASCADE, related_name="tweet_replies")  # primary key
     referenced_tweet = ForeignKey('Tweet', null=True, default=None, on_delete=SET_NULL)
@@ -96,7 +106,8 @@ class HashtagAuthorMap(Model):
         unique_together = (('start', 'author'),)
 
     id = CharField(max_length=256, primary_key=True)  # Tweet_id + start
-    author = ForeignKey('Author', on_delete=CASCADE)  # primary key
+    author = ForeignKey('Author', null=True, default=None,
+                        on_delete=SET_NULL)  # primary key
     hashtag = ForeignKey('HashTags', null=True, default=None, on_delete=SET_NULL)
     start = IntegerField()
     end = IntegerField()
@@ -140,7 +151,8 @@ class MentionTweet(Model):
         unique_together = (('start', 'tweet'),)
 
     id = CharField(max_length=256, primary_key=True)  ## Combinations author_id + tweet_id +start
-    tweet = ForeignKey('Tweet', on_delete=CASCADE)  # primary key
+    tweet = ForeignKey('Tweet', null=True, default=None,
+                       on_delete=SET_NULL)  # primary key
     mention_author = ForeignKey('Author', null=True, default=None, on_delete=SET_NULL)  # primary key
     start = IntegerField()
     end = IntegerField()
@@ -152,7 +164,8 @@ class Urls(Model):
         unique_together = (('start', 'tweet'),)
 
     id = CharField(max_length=256, primary_key=True)  # Combination of tweet_id + url + start
-    tweet = ForeignKey('Tweet', on_delete=CASCADE)  # Many urls in one tweet
+    tweet = ForeignKey('Tweet', null=True, default=None,
+                       on_delete=SET_NULL)  # Many urls in one tweet
     url = TextField()
     start = IntegerField()
     end = IntegerField()
